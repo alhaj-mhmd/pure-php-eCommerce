@@ -1,0 +1,38 @@
+/* login page start */
+.login {
+  width: 300px;
+  margin: 12px auto;
+}
+/* login page end  */
+
+/* Dashboard page start */
+.dash-stats .dash-stat {
+  font-size: 25px;
+  color: #fff;
+  border-radius: 10px;
+}
+.dash-stats .st-members {
+  background-color: #70a1ff;
+}
+.dash-stats .st-pending {
+  background-color: #ff7f50;
+}
+.dash-stats .st-items {
+  background-color: #7bed9f;
+}
+.dash-stats .st-comments {
+  background-color: #eccc68;
+}
+
+.dash-stats .dash-stat span {
+  display: block;
+  font-size: 60px;
+}
+.dash-stats .dash-stat a{
+    color: #fff;
+}
+.dash-stats .dash-stat a:hover{
+    text-decoration: none;
+}
+
+/* Dashboard page end */
