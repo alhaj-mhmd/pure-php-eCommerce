@@ -14,12 +14,10 @@ if (isset($_SESSION['username'])) {
     elseif ($do == 'add') { }
     //insert page
     elseif ($do == 'insert') { }
-     // end insert page
     //Edit page
     elseif ($do == 'edit') { }
     //update page
     elseif ($do == 'update') { } 
-    //end update page
     //delete page
     elseif ($do == 'delete') { } 
     //activate page

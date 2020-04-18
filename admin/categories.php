@@ -1,7 +1,9 @@
 <?php
-// ============================
-// Category  page 
-// ============================
+/* 
+    ============================
+        Category  page 
+    ============================
+ */
 ob_start();
 session_start();
 $pageTitle = 'Categories';
@@ -24,9 +26,11 @@ if (isset($_SESSION['username'])) {
         <div class="container text-center">
             <h1 class="my-4">Manage Categories </h1>
             <div>
-                <label>Ordering</label>
-                <a href="?sort=ASC">ASC</a>
+                Ordering
+                [
+                <a href="?sort=ASC">ASC</a> |
                 <a href="?sort=DESC">DESC</a>
+                ]
             </div>
             <table class="table table-bordered">
                 <th>#catID</th>
@@ -40,7 +44,7 @@ if (isset($_SESSION['username'])) {
                 <?php
                         foreach ($rows as $row) {
                             echo '<tr>';
-                            echo '<td>' . $row['catID'] . '</td>';
+                            echo '<td>' . $row['id'] . '</td>';
                             echo '<td>' . $row['name'] . '</td>';
                             echo '<td>' . $row['description'] . '</td>';
                             echo '<td>' . $row['ordering'] . '</td>';
@@ -52,22 +56,22 @@ if (isset($_SESSION['username'])) {
                             }
                             echo '</td>';
                             echo '<td>';
-                            if ($row['allowcomment'] == 0) {
+                            if ($row['allow_comment'] == 0) {
                                 echo 'Allowed Comments';
                             } else {
                                 echo 'No Comments';
                             }
                             echo '</td>';
                             echo '<td>';
-                            if ($row['allowads'] == 0) {
+                            if ($row['allow_ads'] == 0) {
                                 echo 'Allowed Ads';
                             } else {
                                 echo 'No Ads';
                             }
                             echo '</td>';
                             echo '<td>
-                                    <a href="categories.php?do=edit&catid=' . $row['catID'] . '" class="btn btn-success"><i class="fa fa-edit mr-1"></i>Edit</a>
-                                    <a href="categories.php?do=delete&catid=' . $row['catID'] . '"class="btn btn-danger  confirm"><i class="fa fa-trash mr-1"></i>Delete</a>
+                                    <a href="categories.php?do=edit&catid=' . $row['id'] . '" class="btn btn-success"><i class="fa fa-edit mr-1"></i>Edit</a>
+                                    <a href="categories.php?do=delete&catid=' . $row['id'] . '"class="btn btn-danger  confirm"><i class="fa fa-trash mr-1"></i>Delete</a>
                                     </td>';
                             echo '</tr>';
                         }
@@ -75,12 +79,11 @@ if (isset($_SESSION['username'])) {
             </table>
             <a href="categories.php?do=add" class="mt-3 btn btn-primary btn-lg"><i class="fa fa-plus"></i> New Category</a>
         </div>
-    <?php
-        }
-        //add page
-        elseif ($do == 'add') {
+        <?php
+            }
+    //add page
+    elseif ($do == 'add') {
             ?>
-        <!-- Add page  -->
         <div class="container">
             <h1 class="text-center">Add Category </h1>
             <form class="form-horizontal" action="?do=insert" method="POST">
@@ -150,53 +153,54 @@ if (isset($_SESSION['username'])) {
         </div>
         <?php
             }
-            //insert page
-            elseif ($do == 'insert') {
-                if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                    echo '<div class="container">';
-                    $name = $_POST['name'];
-                    $description = $_POST['description'];
-                    $ordering = $_POST['ordering'];
-                    $visible = $_POST['visible'];
-                    $comment = $_POST['comment'];
-                    $ads = $_POST['ads'];
-                    // form validate
-                    if ($name !== '') {
-                        if (checkItem('name', 'categories', $name) == 1) {
-                            $theMsg = '<div class="alert alert-danger">The category is exsit</div>';
-                            redirectHome($theMsg, 'previous');
-                        } else {
-                            // insert into database  
-                            $stmt = $con->prepare("INSERT INTO  categories (name, description,ordering, visibility, allowcomment,allowads)
-                VALUES (:name, :description,:ordering,:visible, :comment,:ads) ");
-                            $stmt->execute(array(
-                                'name' => $name,
-                                'description' => $description,
-                                'ordering' => $ordering,
-                                'visible' => $visible,
-                                'comment' => $comment,
-                                'ads' => $ads
-                            ));
-                            if ($stmt->rowCount() == 1) {
-                                $theMsg = '<div class="alert alert-danger">' . $stmt->rowCount() . ' Record is  inserted </div>' . ' <h1 class="text-center">Update successed </h1>';
-                                redirectHome($theMsg, 'previous');
-                            } else {
-                                $theMsg = '<div class="alert alert-danger">Not Inserted</div>';
-                                redirectHome($theMsg, 'previous');
-                            }
-                        }
-                    }
-                    echo '</div>';
+    //insert page
+    elseif ($do == 'insert') {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            echo '<div class="container">';
+            $name = $_POST['name'];
+            $description = $_POST['description'];
+            $ordering = $_POST['ordering'];
+            $visible = $_POST['visible'];
+            $comment = $_POST['comment'];
+            $ads = $_POST['ads'];
+            // form validate
+            if ($name !== '') {
+                if (checkItem('name', 'categories', $name) == 1) {
+                    $theMsg = '<div class="alert alert-danger">The category is exsit</div>';
+                    redirectHome($theMsg, 'previous');
                 } else {
-                    $theMsg = "<div class='alert alert-danger'>You cant brouwse this directly </div>";
-                    redirectHome($theMsg);
+                    // insert into database  
+                    $stmt = $con->prepare(" INSERT INTO 
+                                                    categories (name, description, ordering, visibility, allow_comment, allow_ads)
+                                            VALUES 
+                                                    (:name, :description, :ordering, :visible, :comment, :ads) ");
+                    $stmt->execute(array(
+                        'name' => $name,
+                        'description' => $description,
+                        'ordering' => $ordering,
+                        'visible' => $visible,
+                        'comment' => $comment,
+                        'ads' => $ads
+                    ));
+                    if ($stmt->rowCount() == 1) {
+                        $theMsg = '<div class="alert alert-danger">' . $stmt->rowCount() . ' Record is  inserted </div>' . ' <h1 class="text-center">Update successed </h1>';
+                        redirectHome($theMsg, 'previous');
+                    } else {
+                        $theMsg = '<div class="alert alert-danger">Not Inserted</div>';
+                        redirectHome($theMsg, 'previous');
+                    }
                 }
             }
-            // end insert page
-            //Edit page
-            elseif ($do == 'edit') {
+            echo '</div>';
+        } else {
+            $theMsg = "<div class='alert alert-danger'>You cant brouwse this directly </div>";
+            redirectHome($theMsg);
+        }
+    }
+    //Edit page
+    elseif ($do == 'edit') {
                 $catid = isset($_GET['catid']) && is_numeric($_GET['catid']) ? intval($_GET['catid']) : 0;
-                $stmt = $con->prepare("SELECT *  FROM categories WHERE catID=? ");
+                $stmt = $con->prepare("SELECT *  FROM categories WHERE id = ? ");
                 $stmt->execute(array($catid));
                 $row = $stmt->fetch();
                 if ($stmt->rowCount() > 0) { ?>
@@ -244,13 +248,13 @@ if (isset($_SESSION['username'])) {
                             <!-- com-yes is from: comment yes 
                               com-no is form : comment no -->
                             <div class="form-check">
-                                <input id="com-yes" type="radio" name="comment" class="form-check-input" value="0" <?php if ($row['allowcomment'] == 0) {
+                                <input id="com-yes" type="radio" name="comment" class="form-check-input" value="0" <?php if ($row['allow_comment'] == 0) {
                                                                                                                                     echo 'checked';
                                                                                                                                 } ?>>
                                 <label for="com-yes">Yes</label>
                             </div>
                             <div class="form-check">
-                                <input id="com-no" type="radio" name="comment" class="form-check-input" value="1" <?php if ($row['allowcomment'] == 1) {
+                                <input id="com-no" type="radio" name="comment" class="form-check-input" value="1" <?php if ($row['allow_comment'] == 1) {
                                                                                                                                     echo 'checked';
                                                                                                                                 } ?>>
                                 <label for="com-no">No</label>
@@ -261,13 +265,13 @@ if (isset($_SESSION['username'])) {
                         <div class="col-6">
                             <!-- ads-yes is from: ads yes - ads-no is form : ads no -->
                             <div class="form-check">
-                                <input id="ads-yes" type="radio" name="ads" class="form-check-input" value="0" <?php if ($row['allowads'] == 0) {
+                                <input id="ads-yes" type="radio" name="ads" class="form-check-input" value="0" <?php if ($row['allow_ads'] == 0) {
                                                                                                                                 echo 'checked';
                                                                                                                             } ?>>
                                 <label for="ads-yes" class="form-check-label">Yes</label>
                             </div>
                             <div class="form-check">
-                                <input id="ads-no" type="radio" name="ads" class="form-check-input" value="1" <?php if ($row['allowads'] == 1) {
+                                <input id="ads-no" type="radio" name="ads" class="form-check-input" value="1" <?php if ($row['allow_ads'] == 1) {
                                                                                                                                 echo 'checked';
                                                                                                                             } ?>>
                                 <label for="ads-no">No</label>
@@ -280,11 +284,11 @@ if (isset($_SESSION['username'])) {
                     </div>
                 </form>
             </div>
-<?php } else {
-            $theMsg = '<div class="alert alert-danger"> Not found user</div>';
-            redirectHome($theMsg);
+        <?php } else {
+                $theMsg = '<div class="alert alert-danger"> Not found user</div>';
+                redirectHome($theMsg);
+            }
         }
-    }
     //update page
     elseif ($do == 'update') {
         echo '<div class="container">';
@@ -299,7 +303,7 @@ if (isset($_SESSION['username'])) {
             // check if there is no error
             if ($name !== '') {
                 // update database  
-                $stmt = $con->prepare("UPDATE categories SET name=?, description=?,ordering=?, visibility=?, allowcomment=?,allowads=? WHERE catID=?");
+                $stmt = $con->prepare("UPDATE categories SET name = ?, description = ?,ordering = ?, visibility=  ?, allow_comment = ?,allow_ads = ? WHERE id = ?");
                 $stmt->execute(array($name, $description, $ordering, $visible, $comment, $ads,$catid));
                 $theMsg = '<div class="alert alert-danger">' . $stmt->rowCount() . ' row updated </div>' . ' <h1 class="text-center">Update successed </h1>';
                 redirectHome($theMsg, 'previous');
@@ -310,14 +314,13 @@ if (isset($_SESSION['username'])) {
         }
         echo '</div>';
     }
-    //end update page
     //delete page
     elseif ($do == 'delete') {
         $catid = isset($_GET['catid']) && is_numeric($_GET['catid']) ? intval($_GET['catid']) : 0;
         $check = checkItem('catID', 'categories', $catid);
         if ($check > 0) {
-            $stmt = $con->prepare('DELETE FROM categories WHERE catID=:catid');
-            $stmt->bindparam(":catid", $catid);
+            $stmt = $con->prepare('DELETE FROM categories WHERE id = :catid');
+            $stmt->bindparam(":id", $catid);
             $stmt->execute();
             $theMsg = '<div class="alert alert-danger">' . $stmt->rowCount() . ' row Deleted </div>' . ' <h1 class="text-center">Delete successed </h1>';
             redirectHome($theMsg);
@@ -326,7 +329,7 @@ if (isset($_SESSION['username'])) {
             redirectHome($theMsg);
         }
      }
-    //activate page
+
 
     //footer           
     include $tpl . 'footer.php';

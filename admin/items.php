@@ -1,7 +1,9 @@
 <?php
-// ============================
-// items  page 
-// ============================
+/* 
+    ============================
+    items  page 
+    ============================ 
+*/
 ob_start();
 session_start();
 $pageTitle = 'Items';
@@ -11,10 +13,9 @@ if (isset($_SESSION['username'])) {
     //manage page
     if ($do == 'manage') {
         // select data from the DB
-        $stmt = $con->prepare("SELECT * FROM items");
         $stmt=$con->prepare("SELECT items.* , categories.name AS category, users.username FROM items
-        INNER JOIN categories on categories.catID=items.catid
-        INNER JOIN users on users.userID=items.userid");
+        INNER JOIN categories on categories.id = items.cat_id
+        INNER JOIN users on users.userID = items.member_id");
         $stmt->execute();
         //asign data to the variabls
         $items = $stmt->fetchAll();
@@ -33,16 +34,16 @@ if (isset($_SESSION['username'])) {
                 <?php
                         foreach ($items as $item) {
                             echo '<tr>';
-                                echo '<td>' . $item['itemID'] . '</td>';
+                                echo '<td>' . $item['item_id'] . '</td>';
                                 echo '<td>' . $item['name'] . '</td>';
                                 echo '<td>' . $item['description'] . '</td>';
                                 echo '<td>' . $item['price'] . '</td>';
-                                echo '<td>' . $item['adddate'] . '</td>';
+                                echo '<td>' . $item['add_date'] . '</td>';
                                 echo '<td>' . $item['category'] . '</td>';
                                 echo '<td>' . $item['username'] . '</td>';
                                 echo '<td>
-                                    <a href="items.php?do=edit&itemid=' . $item['itemID'] . '" class="btn btn-success"><i class="fa fa-edit mr-1"></i>Edit</a>
-                                    <a href="items.php?do=delete&itemid=' . $item['itemID'] . '"class="btn btn-danger  confirm"><i class="fa fa-trash mr-1"></i>Delete</a>';
+                                    <a href="items.php?do=edit&itemid=' . $item['item_id'] . '" class="btn btn-success"><i class="fa fa-edit mr-1"></i>Edit</a>
+                                    <a href="items.php?do=delete&itemid=' . $item['item_id'] . '"class="btn btn-danger  confirm"><i class="fa fa-trash mr-1"></i>Delete</a>';
                                 echo '</td>';
                             echo '</tr>';
                         }
@@ -55,7 +56,6 @@ if (isset($_SESSION['username'])) {
     //add page
     elseif ($do == 'add') {
         ?>
-        <!-- Add page  -->
         <div class="container">
             <h1 class="text-center">Add Item </h1>
             <form class="form-horizontal" action="?do=insert" method="POST">
@@ -91,6 +91,16 @@ if (isset($_SESSION['username'])) {
                             <option value="4">Very Old</option>
                         </select>
                     </div>
+                    <!-- item rating  -->
+                    <label class="mt-3 control-lable">Rating</label>
+                    <div class="col-6">
+                        <select name="rating" id="" class="form-control">
+                            <option value="1">*</option>
+                            <option value="2">**</option>
+                            <option value="3">***</option>
+                            <option value="4">****</option>
+                        </select>
+                    </div>
                     <!-- item member -->
                     <label class="mt-3 control-lable">Member</label>
                     <div class="col-6">
@@ -116,7 +126,7 @@ if (isset($_SESSION['username'])) {
                                     $stmtcat->execute();
                                     $cats = $stmtcat->fetchAll();
                                     foreach ($cats as  $cat) {
-                                        echo '<option value="' . $cat['catID'] . '">' . $cat['name'] . '</option>';
+                                        echo '<option value="' . $cat['id'] . '">' . $cat['name'] . '</option>';
                                     }
                                     ?>
                         </select>
@@ -128,36 +138,26 @@ if (isset($_SESSION['username'])) {
                 </div>
             </form>
         </div>
-<?php
-    }
+        <?php
+            }
     //insert page
     elseif ($do == 'insert') {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo '<div class="container">';
-            $name = $_POST['name'];
-            $description = $_POST['description'];
-            $price = $_POST['price'];
-            $countrymade = $_POST['countrymade'];
-            $status = $_POST['status'];
-            $catid=$_POST['catid'];
-            $userid=$_POST['userid'];
-            //form validate
+            $name           = $_POST['name'];
+            $description    = $_POST['description'];
+            $price          = $_POST['price'];
+            $countrymade    = $_POST['countrymade'];
+            $status         = $_POST['status'];
+            $rating         = $_POST['rating'];
+            $catid          = $_POST['catid'];
+            $userid         = $_POST['userid'];
+
             $formerrors = array();
             if (empty($name)) {
                 $formerrors[] = "username cannot be empty";
             }
-            // if (empty($username)) {
-            //     $formerrors[] = "username cannot be empty ";
-            // }
-            // if (empty($password)) {
-            //     $formerrors[] = "password cannot be empty ";
-            // }
-            // if (empty($email)) {
-            //     $formerrors[] = " email cannot be empty ";
-            // }
-            // if (empty($fullname)) {
-            //     $formerrors[] = "   name cannot be empty  ";
-            // }
+            
             foreach ($formerrors as $error) {
                 echo "<div class='alert alert-danger'>" . $error . "</div>";
             }
@@ -165,14 +165,15 @@ if (isset($_SESSION['username'])) {
             // check if there is no error
             if (empty($formerrors)) {
                 // insert into database    
-                $stmt = $con->prepare("INSERT INTO  items ( name, description, price, adddate, countrymade, status, catid,userid )
-                    VALUES (:name, :description, :price , now(), :countrymade, :status,:catid, :userid )");
+                $stmt = $con->prepare("INSERT INTO  items ( name, description, price, add_date, country_made, status, rating, cat_id, member_id )
+                    VALUES (:name, :description, :price , now(), :countrymade, :status, :rating, :catid, :userid )");
                 $stmt->execute(array(
                     'name' => $name,
                     'description' => $description,
                     'price' => $price,
                     'countrymade' => $countrymade,
                     'status' => $status,
+                    'rating' => $rating,
                     'catid'=> $catid,
                     'userid'=>$userid
                 ));
@@ -181,7 +182,7 @@ if (isset($_SESSION['username'])) {
                     redirectHome($theMsg, 'previous');
                 } else {
                     $theMsg = '<div class="alert alert-danger">Not Inserted</div>';
-                    redirectHome($theMsg, 'previous');
+                    redirectHome($theMsg, 'previous',80000);
                 }
             }
         } else {
@@ -189,16 +190,14 @@ if (isset($_SESSION['username'])) {
             redirectHome($theMsg);
         }
     }
-    // end insert page
     //Edit page
-    elseif ($do == 'edit') {
-        
+    elseif ($do == 'edit') {    
         $itemid = isset($_GET['itemid']) && is_numeric($_GET['itemid']) ? intval($_GET['itemid']) : 0;
         $stmt = $con->prepare("SELECT *  FROM items WHERE itemID=? ");
         $stmt->execute(array($itemid));
         $row = $stmt->fetch();
         if ($stmt->rowCount() > 0) { ?>
-    <div class="container">
+        <div class="container">
         <h1 class="text-center">Edit Item </h1>
         <form class="form-horizontal" action="?do=update" method="POST">
             <div class="form-group">
@@ -270,16 +269,15 @@ if (isset($_SESSION['username'])) {
                 </div>
             </div>
         </form>
-    </div>
-    <?php
-     }
+     </div>
+        <?php
+        }
     }
     //update page
     elseif ($do == 'update') { }
-    //end update page
     //delete page
     elseif ($do == 'delete') { }
-    //activate page
+    //approve page
     elseif ($do == 'approve') { }
     //footer           
     include $tpl . 'footer.php';
