@@ -42,8 +42,12 @@ if (isset($_SESSION['username'])) {
                                 echo '<td>' . $item['category'] . '</td>';
                                 echo '<td>' . $item['username'] . '</td>';
                                 echo '<td>
-                                    <a href="items.php?do=edit&itemid=' . $item['item_id'] . '" class="btn btn-success"><i class="fa fa-edit mr-1"></i>Edit</a>
+                                    <a href="items.php?do=edit&itemid=' . $item['item_id'] . '" class="btn btn-info"><i class="fa fa-edit mr-1"></i>Edit</a>
                                     <a href="items.php?do=delete&itemid=' . $item['item_id'] . '"class="btn btn-danger  confirm"><i class="fa fa-trash mr-1"></i>Delete</a>';
+                                    if ($item['approve'] == 0) {
+                                            echo '<a href="items.php?do=approve&itemid=' . $item['item_id'] . '" class="btn btn-success ml-1"><i class="fa fa-check mr-1"></i>Approve</a>';
+
+                                        }
                                 echo '</td>';
                             echo '</tr>';
                         }
@@ -193,7 +197,7 @@ if (isset($_SESSION['username'])) {
     //Edit page
     elseif ($do == 'edit') {    
         $itemid = isset($_GET['itemid']) && is_numeric($_GET['itemid']) ? intval($_GET['itemid']) : 0;
-        $stmt = $con->prepare("SELECT *  FROM items WHERE itemID=? ");
+        $stmt = $con->prepare("SELECT *  FROM items WHERE item_id = ? ");
         $stmt->execute(array($itemid));
         $row = $stmt->fetch();
         if ($stmt->rowCount() > 0) { ?>
@@ -205,35 +209,35 @@ if (isset($_SESSION['username'])) {
                 <!-- item name  -->
                 <label class=" mt-3 control-lable">Item Name</label>
                 <div class="col-6">
-                    <input type="text" value="<?php echo $row['name'] ?>" name="name" class="form-control" autocomplete="off" required="required">
+                    <input type="text"  name="name" value="<?php echo $row['name'] ?>" class="form-control" autocomplete="off" required="required">
                 </div>
                 <!-- item description  -->
                 <label class="mt-3 control-lable">description</label>
                 <div class="col-6">
-                    <input type="text" name="description" value="<?php echo $row['description']; ?>">
+                    <input type="text" name="description" value="<?php echo $row['description']; ?>" class="form-control">
                 </div>
                 <!-- item price  -->
                 <label class="mt-3 control-lable">price</label>
                 <div class="col-6">
-                    <input type="text" value="<?php echo $row['price'] ?>" name="price" class="form-control" required="required">
+                    <input type="text" name="price" value="<?php echo $row['price'] ?>"  class="form-control" required="required">
                 </div>
-                <!-- item adddate  -->
-                <label class="mt-3 control-lable">Add date</label>
+                <!-- country made -->
+                <label class="mt-3 control-lable">Country Made</label>
                 <div class="col-6">
-                    <input type="date" value="<?php echo $row['adddate'] ?>" name="adddate" class="form-control" required="required">
+                    <input type="text" name="country" value="<?php echo $row['country_made'] ?>"  class="form-control">
                 </div>
-                 <!-- item status  -->
+                 <!-- status  -->
                  <label class="mt-3 control-lable">Status</label>
                     <div class="col-6">
                         <select name="status" id="" class="form-control">
-                            <option value="0">...</option>
-                            <option value="1">New</option>
-                            <option value="2">Like New</option>
-                            <option value="3">Used</option>
-                            <option value="4">Very Old</option>
+                            <option value="0" <?php if ($row["status"] == 0) { echo "selected"; } ?>>...</option>
+                            <option value="1" <?php if ($row["status"] == 1) { echo "selected"; } ?>>New</option>
+                            <option value="2" <?php if ($row["status"] == 2) { echo "selected"; } ?>>Like New</option>
+                            <option value="3" <?php if ($row["status"] == 3) { echo "selected"; } ?>>Used</option>
+                            <option value="4" <?php if ($row["status"] == 4) { echo "selected"; } ?>>Very Old</option>
                         </select>
                     </div>
-                     <!-- item member -->
+                     <!-- member -->
                      <label class="mt-3 control-lable">Member</label>
                     <div class="col-6">
                         <select name="userid" id="" class="form-control">
@@ -243,12 +247,12 @@ if (isset($_SESSION['username'])) {
                                     $stmt->execute();
                                     $users = $stmt->fetchAll();
                                     foreach ($users as  $user) {
-                                        echo '<option value="' . $user['userID'] . '">' . $user['username'] . '</option>';
+                                        echo '<option value="' . $user['userID'] . '"'; if ($row["member_id"] == $user["userID"]) { echo "selected"; } echo '>' . $user['username'] . '</option>';
                                     }
                                     ?>
                         </select>
                     </div>
-                    <!-- item Category -->
+                    <!-- Category -->
                     <label class="mt-3 control-lable">Category</label>
                     <div class="col-6">
                         <select name="catid" id="" class="form-control">
@@ -258,7 +262,7 @@ if (isset($_SESSION['username'])) {
                                     $stmtcat->execute();
                                     $cats = $stmtcat->fetchAll();
                                     foreach ($cats as  $cat) {
-                                        echo '<option value="' . $cat['catID'] . '">' . $cat['name'] . '</option>';
+                                        echo '<option value="' . $cat['id'] . '"'; if ($row["cat_id"] == $cat["id"]) { echo "selected"; } echo '>' . $cat['name'] . '</option>';
                                     }
                                     ?>
                         </select>
@@ -274,11 +278,75 @@ if (isset($_SESSION['username'])) {
         }
     }
     //update page
-    elseif ($do == 'update') { }
+    elseif ($do == 'update') { 
+        echo '<div class="container">';
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $itemid         = $_POST['itemid'];
+            $name           = $_POST['name'];
+            $description    = $_POST['description'];
+            $price          = $_POST['price'];
+            $status         = $_POST['status'];
+            $country        = $_POST["country"];
+            $member         = $_POST['userid'];
+            $category       = $_POST['catid'];
+
+            $formerrors = array();
+
+            if (empty($name)) {
+                $formerrors[] = "username cannot be empty";
+            }
+            foreach ($formerrors as $error) {
+                echo "<div class='alert alert-danger'>" . $error . "</div>";
+            }
+            // check if there is no error
+            if (empty($formerrors)) {
+                // update database     
+                $stmt = $con->prepare(" UPDATE 
+                                            items
+                                        SET 
+                                            name = ?, description = ?, price = ? , status = ?, country_made = ?, cat_id = ? , member_id=?
+                                        WHERE 
+                                            item_id = ?");
+                $stmt->execute(array( $name , $description, $price, $status, $country, $category, $member, $itemid ));
+                $theMsg = '<div class="alert alert-danger">' . $stmt->rowCount() . ' row updated </div>' . ' <h1 class="text-center">Update successed </h1>';
+                redirectHome($theMsg, 'previous');
+            }
+        } else {
+            $theMsg = '<div class="alert alert-danger">Not updated</div>';
+            redirectHome($theMsg, 'previous');
+        }
+        echo '</div>';
+    }
     //delete page
-    elseif ($do == 'delete') { }
+    elseif ($do == 'delete') {
+        $itemid = isset($_GET['itemid']) && is_numeric($_GET['itemid']) ? intval($_GET['itemid']) : 0;
+        $check = checkItem('item_id', 'items', $itemid);
+        if ($check > 0) {
+            $stmt = $con->prepare('DELETE FROM items WHERE item_id = :itemid');
+            $stmt->bindparam(":itemid", $itemid);
+            $stmt->execute();
+            $theMsg = '<div class="alert alert-danger">' . $stmt->rowCount() . ' row Deleted </div>' . ' <h1 class="text-center">Delete successed </h1>';
+            redirectHome($theMsg);
+        } else {
+            $theMsg = '<div class="alert alert-danger">Not exist</div>';
+            redirectHome($theMsg);
+        }
+     }
     //approve page
-    elseif ($do == 'approve') { }
+    elseif ($do == 'approve') {
+        $itemid = isset($_GET['itemid']) && is_numeric($_GET['itemid']) ? intval($_GET['itemid']) : 0;
+        $check = checkItem('item_id', 'items', $itemid);
+        if ($check > 0) {
+            $stmt = $con->prepare('UPDATE items SET approve = 1 WHERE item_id = :itemid');
+            $stmt->bindparam(":itemid", $itemid);
+            $stmt->execute();
+            $theMsg = '<div class="alert alert-danger">' . $stmt->rowCount() . ' row updated </div>' . ' <h1 class="text-center">Activate successed </h1>';
+            redirectHome($theMsg);
+        } else {
+            $theMsg = '<div class="alert alert-danger">Not exist</div>';
+            redirectHome($theMsg);
+        }
+     }
     //footer           
     include $tpl . 'footer.php';
     //session usernmae not found 
