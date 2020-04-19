@@ -4,6 +4,7 @@
     == add - insert | edit - update | 
 */
 session_start();
+$pageTitle = "Members";
 
 if (isset($_SESSION['username'])) {
     include 'init.php';
@@ -220,11 +221,20 @@ if (isset($_SESSION['username'])) {
             }
             // check if there is no error
             if (empty($formerrors)) {
-                // update database     
+                $stmt2 = $con->prepare("SELECT * FROM users
+                                        WHERE username = ? 
+                                        AND userID != ?");
+                $stmt2->execute(array($username, $userid));
+                $count = $stmt2->rowCount();
+                if ($count == 1) {
+                  echo "Sorry the username is existed";
+                }else {
+                      // update database     
                 $stmt = $con->prepare("UPDATE users SET username=?, email=?, fullname=?, password=? WHERE userID=?");
                 $stmt->execute(array($username, $email, $fullname, $pass, $userid));
                 $theMsg = '<div class="alert alert-danger">' . $stmt->rowCount() . ' row updated </div>' . ' <h1 class="text-center">Update successed </h1>';
                 redirectHome($theMsg, 'previous');
+                }
             }
         } else {
             $theMsg = '<div class="alert alert-danger">Not updated</div>';

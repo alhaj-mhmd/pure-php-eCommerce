@@ -276,6 +276,51 @@ if (isset($_SESSION['username'])) {
      </div>
         <?php
         }
+        //manage page
+    
+        // select data from the DB
+        $stmt = $con->prepare("SELECT comments.* , items.name AS item , users.username AS user
+                                FROM  comments
+                                INNER JOIN items ON items.item_id = comments.item_id
+                                INNER JOIN users ON users.userID = comments.user_id
+                                WHERE items.item_id = ?
+                            ");
+        $stmt->execute(array($itemid));
+        //asign data to the variabls
+        $rows = $stmt->fetchAll();
+        if (!empty($rows)) {
+          
+      
+        ?>
+        <div class="container text-center">
+            <h1>Manage [ <?php echo $row['name'] ?> ] Comments </h1>
+            <table class="table table-bordered">
+                <th>#ID</th>
+                <th>Comment</th>
+                <th>Comment Date</th>
+                <th>Member</th>
+                <th>Control</th>
+                <?php
+                        foreach ($rows as $row) {
+                            echo '<tr>';
+                            echo '<td>' . $row['c_id'] . '</td>';
+                            echo '<td>' . $row['comment'] . '</td>';
+                            echo '<td>' . $row['comment_date'] . '</td>';
+                            echo '<td>' . $row['user'] . '</td>';
+                            echo '<td>
+                                    <a href="comments.php?do=edit&commentid=' . $row['c_id'] . '" class="btn btn-success"><i class="fa fa-edit mr-1"></i>Edit</a>
+                                    <a href="comments.php?do=delete&commentid=' . $row['c_id'] . '"class="btn btn-danger  confirm"><i class="fa fa-trash mr-1"></i>Delete</a>';
+                            if ($row['status'] == 0) {
+                                echo '<a href="comments.php?do=approve&commentid=' . $row['c_id'] . '" class="btn btn-secondary ml-1"><i class="fa fa-check"></i>Approve</a>';
+                            }
+                            echo '</td>';
+                            echo '</tr>';
+                        }
+                        ?>
+            </table>
+        </div>
+    <?php   }
+
     }
     //update page
     elseif ($do == 'update') { 

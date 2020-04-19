@@ -75,9 +75,12 @@ function countItems($item,$table)
     $table
     $limits
 */
-function getLatest($select, $table, $order, $limit = 5){
+function getLatest($select, $table, $order, $limit = 5 , $where = ''){
     global $con;
-    $getStmt = $con->prepare("SELECT $select FROM $table ORDER BY $order DESC LIMIT $limit");
+    if (! empty($where)) {
+        $where = "WHERE " . $where;
+    }
+    $getStmt = $con->prepare("SELECT $select FROM $table $where ORDER BY $order DESC LIMIT $limit");
     $getStmt->execute();
     $rows = $getStmt->fetchAll();
     return $rows;

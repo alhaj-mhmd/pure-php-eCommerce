@@ -4,6 +4,12 @@
 	if (isset($_SESSION['username'])) {
 		$pageTitle = 'Dashboard';
 		include 'init.php';
+		/* Start Dashborad Page */
+		$numUsers = 5 ;
+		$latestUsers = getLatest('*', 'users', 'userID', $numUsers, 'groupID = 0' );
+
+		$numItems = 5 ;
+		$latestItems = getLatest('*', 'items', 'item_id', $numItems );
 		?>
 		<div class="container text-center dash-stats">
 			<h1>Dash Board</h1>
@@ -29,7 +35,7 @@
 				<div class="col-3">
 					<div class="dash-stat st-comments">
 						Total Comments
-						<span>12</span>
+						<span><a href="comments.php"><?php echo countItems('c_id', 'comments'); ?></a></span>
 					</div>
 				</div>
 			</div>
@@ -38,15 +44,14 @@
 			<div class="row">
 				<div class="col-6">
 					<div class="card">
-						<?php $latestusers = 5; ?>
 						<div class="card-header text-center">
-							<i class="fa fa-users mr-2"></i>Latest <?php echo $latestusers; ?> Registered Users
+							<i class="fa fa-users mr-2"></i>Latest Registered Users
 						</div>
 						<div class="card-body">
 							<ul class="list-group list-group-flush">
 								<?php
-									$latest = getLatest('*', 'users', 'userID', $latestusers);
-									foreach ($latest as $user) {
+								if (! empty($latestUsers)) {
+										foreach ($latestUsers as $user) {
 										echo '<li class="list-group-item">' . $user['username'] .
 											'<a href="members.php?do=edit&userid=' . $user['userID'] . '"> <span class="btn btn-success float-right ">
 										<i class="fa fa-edit"></i>Edit</span></a>';
@@ -55,6 +60,9 @@
 										}
 										echo '</li>';
 									}
+								}else{
+									echo "No users";
+								}
 									?>
 							</ul>
 						</div>
@@ -66,7 +74,23 @@
 							<i class="fa fa-tag mr-2"></i>Latest Added Items
 						</div>
 						<div class="card-body">
-							Test
+						<ul class="list-group list-group-flush">
+								<?php
+								if (! empty($latestItems)) {
+									foreach ($latestItems as $item) {
+										echo '<li class="list-group-item">' . $item['name'] .
+											'<a href="items.php?do=edit&itemid=' . $item['item_id'] . '"> <span class="btn btn-success float-right ">
+										<i class="fa fa-edit"></i>Edit</span></a>';
+										if ($item['approve'] == 0) {
+											echo '<a href="items.php?do=approve&itemid=' . $item['item_id'] . '" class="btn btn-secondary float-right mr-1"><i class="fa fa-edit"></i>Approve</a>';
+										}
+										echo '</li>';
+									}
+								}else {
+									echo "No Items";
+								}
+									?>
+							</ul>
 						</div>
 					</div>
 				</div>
